@@ -1,47 +1,30 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
-	"net/http"
-	"os"
-
+	// "os"
 	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
+	"storage/config"
+	"storage/routes"
 )
 
 func main() {
-	// Carrega as variáveis de ambiente
-	env := os.Getenv("ENV")
-	dbHost := os.Getenv("DB_HOST")
-	dbName := os.Getenv("DB_NAME")
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASW")
-
-	// Monta a string de conexão
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbUser, dbPass, dbHost, dbName)
-
-	// Conecta ao banco de dados
-	db, err := sql.Open("mysql", dsn)
+	// Carrega variáveis de ambiente
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Erro ao conectar ao banco: %v", err)
+        log.Println("Aviso: arquivo .env não encontrado. Usando variáveis de ambiente padrão.")
 	}
-	defer db.Close()
 
-	// Testa a conexão
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Erro ao conectar ao banco: %v", err)
-	}
+	// Inicializa conexão com o banco de dados
+	config.InitDB()
 
 	// Cria o router
 	r := gin.Default()
-
-	// Rota inicial
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, " V2 - Conexão bem-sucedida ao banco de dados em %s com ambiente %s", dbName, env)
-	})
+	routes.RegisterRoutes(r)
 
 	// Inicia o servidor
-	r.Run(":8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("Erro ao iniciar o servidor: %v", err)
+	}
 }
