@@ -1,47 +1,42 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-	"net/http"
-	"os"
+    "database/sql"
+    "fmt"
+    "log"
+    "net/http"
+    "os"
 
-	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
+    _ "github.com/go-sql-driver/mysql"
 )
 
+func handler(w http.ResponseWriter, r *http.Request) {
+    env := os.Getenv("ENV")
+    fmt.Fprintf(w, "Valor de ENV: %s\n", env)
+
+    host := os.Getenv("DB_HOST")
+    dbname := os.Getenv("DB_NAME")
+    user := os.Getenv("DB_USER")
+    password := os.Getenv("DB_PASS")
+
+    dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", user, password, host, dbname)
+    db, err := sql.Open("mysql", dsn)
+    if err != nil {
+        http.Error(w, "Erro ao conectar ao banco de dados: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer db.Close()
+
+    if err = db.Ping(); err != nil {
+        http.Error(w, "Erro ao conectar ao banco de dados: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    fmt.Fprintf(w, "Conexão com o banco de dados realizada com sucesso!\n")
+}
+
 func main() {
-	// Carrega as variáveis de ambiente
-	env := os.Getenv("ENV")
-	dbHost := os.Getenv("DB_HOST")
-	dbName := os.Getenv("DB_NAME")
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASW")
+    http.HandleFunc("/", handler)
 
-	// Monta a string de conexão
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbUser, dbPass, dbHost, dbName)
-
-	// Conecta ao banco de dados
-	db, err := sql.Open("mysql", dsn)
-	if err != nil {
-		log.Fatalf("Erro ao conectar ao banco: %v", err)
-	}
-	defer db.Close()
-
-	// Testa a conexão
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Erro ao conectar ao banco: %v", err)
-	}
-
-	// Cria o router
-	r := gin.Default()
-
-	// Rota inicial
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Conexão bem-sucedida ao banco de dados em %s com ambiente %s", dbName, env)
-	})
-
-	// Inicia o servidor
-	r.Run(":8080")
+    log.Fatal(http.ListenAndServe(":8000", nil))
 }
