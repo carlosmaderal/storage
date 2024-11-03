@@ -1,52 +1,47 @@
 package main
 
 import (
-    "database/sql"
-    "fmt"
-    "log"
-    "net/http"
-    "os"
-    "time"
+	"database/sql"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
 
-    _ "github.com/go-sql-driver/mysql"
+	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-    totalStartTime := time.Now()
+	// Carrega as variáveis de ambiente
+	env := os.Getenv("ENV")
+	dbHost := os.Getenv("DB_HOST")
+	dbName := os.Getenv("DB_NAME")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASW")
 
-    env := os.Getenv("ENV")
-    fmt.Println("Valor de ENV:", env)
+	// Monta a string de conexão
+	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", dbUser, dbPass, dbHost, dbName)
 
-    host := os.Getenv("DB_HOST")
-    dbname := os.Getenv("DB_NAME")
-    user := os.Getenv("DB_USER")
-    password := os.Getenv("DB_PASS")
+	// Conecta ao banco de dados
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("Erro ao conectar ao banco: %v", err)
+	}
+	defer db.Close()
 
-    dbStartTime := time.Now()
+	// Testa a conexão
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Erro ao conectar ao banco: %v", err)
+	}
 
-    dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", user, password, host, dbname)
-    db, err := sql.Open("mysql", dsn)
-    if err != nil {
-        log.Fatalf("\nErro ao conectar ao banco de dados: %v", err)
-    }
-    defer db.Close()
+	// Cria o router
+	r := gin.Default()
 
-    if err = db.Ping(); err != nil {
-        log.Fatalf("\nErro ao conectar ao banco de dados: %v", err)
-    }
+	// Rota inicial
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Conexão bem-sucedida ao banco de dados em %s com ambiente %s", dbName, env)
+	})
 
-    fmt.Println("\nConexão com o banco de dados realizada com sucesso!")
-
-    dbLoadTime := time.Since(dbStartTime).Seconds()
-    fmt.Printf("\nTempo de carregamento do banco de dados: %.4f segundos\n", dbLoadTime)
-
-    totalLoadTime := time.Since(totalStartTime).Seconds()
-    fmt.Printf("Tempo total de carregamento: %.4f segundos\n", totalLoadTime)
-
-    // Inicia o servidor na porta definida pelo Cloud Run
-    port := os.Getenv("PORT")
-    if port == "" {
-        port = "8080" // Valor padrão
-    }
-    log.Fatal(http.ListenAndServe(":"+port, nil))
+	// Inicia o servidor
+	r.Run(":8080")
 }
