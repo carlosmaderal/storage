@@ -827,6 +827,8 @@ func GetfileHandler(c *gin.Context) {
 	ext := filepath.Ext(filePath)[1:] // Remove o ponto inicial da extensão
     mimeType := getMimeType(ext) // Captura o tipo MIME
 
+	content, err = resizeImage(content, 500, 0) // Define as dimensões desejadas
+	if err != nil { return }
     // Exibe o conteúdo encontrado no navegador
     c.Data(http.StatusOK, mimeType, content) 
 }

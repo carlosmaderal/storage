@@ -69,6 +69,7 @@ func StoreUploadedFile(file *multipart.FileHeader) (string, error) {
 
 func GetFileHash(file []byte) (string, error) {
 	hash := sha256.New()
+	hash.Write(file)
 	hashInBytes := hash.Sum(nil)
 	return hex.EncodeToString(hashInBytes), nil
 }
