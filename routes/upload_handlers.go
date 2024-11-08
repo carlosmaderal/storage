@@ -11,6 +11,7 @@ import (
 func PingHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"result": time.Now().Unix(),
+		"version": 2.1,
 		"host":   os.Getenv("SERVER_HOST") + "/storage/",
 	})
 }
