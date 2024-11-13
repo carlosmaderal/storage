@@ -1,11 +1,17 @@
-# Usando uma imagem base do Alpine Linux, que é leve
-FROM alpine:latest
+# Use uma imagem base com Go
+FROM golang:1.23-alpine
 
-# Instalando dependências necessárias para rodar o binário
-RUN apk update && apk add --no-cache libc6-compat
+# Defina o diretório de trabalho no container
+WORKDIR /app
 
-# Montando o volume de storage
-VOLUME /srv/projetos/storage
+# Copiar o código-fonte do repositório para o container
+COPY . .
 
-# Definindo o comando de execução
-CMD ["/srv/projetos/storage/main-linux"]
+# Certificar-se de que o script de build tenha permissões de execução
+RUN chmod +x build_and_run.sh
+
+# Instalar dependências Go (se necessário)
+RUN go mod tidy
+
+# Comando que será executado a cada reinício do container
+CMD ["./build_and_run.sh"]
