@@ -1,0 +1,27 @@
+name: Go Build for Linux
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checando o código do repositório
+      uses: actions/checkout@v3
+
+    - name: Configurando o Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.23'
+
+    - name: Instalando dependências
+      run: |
+        go mod tidy
+
+    - name: Compilando o projeto para Linux
+      run: |
+        GOOS=linux GOARCH=amd64 go build -o main-linux
