@@ -24,4 +24,16 @@ jobs:
 
     - name: Compilando o projeto para Linux
       run: |
-        GOOS=linux GOARCH=amd64 go build -o main-linux
+        GOOS=linux GOARCH=amd64 go build -o .github/workflows/main-linux  # Compilando o binário dentro da pasta do workflow
+
+    - name: Mover binário para a raiz do repositório
+      run: |
+        mv .github/workflows/main-linux ./main-linux  # Move o binário para a raiz do projeto
+
+    - name: Criar uma release no GitHub
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./main-linux  # Agora está na raiz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
