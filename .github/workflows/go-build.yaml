@@ -30,10 +30,16 @@ jobs:
       run: |
         mv .github/workflows/main-linux ./main-linux  # Move o binário para a raiz do projeto
 
+    - name: Criar uma tag para o release
+      run: |
+        git tag v${{ github.run_number }}  # Cria uma tag com o número da execução
+        git push origin v${{ github.run_number }}  # Envia a tag para o repositório
+
     - name: Criar uma release no GitHub
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
-        files: ./main-linux  # Agora está na raiz
+        files: ./main-linux
+        tag_name: v${{ github.run_number }}  # Usando a tag criada
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
