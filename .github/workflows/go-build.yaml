@@ -24,22 +24,8 @@ jobs:
 
     - name: Compilando o projeto para Linux
       run: |
-        GOOS=linux GOARCH=amd64 go build -o .github/workflows/main-linux  # Compilando o binário dentro da pasta do workflow
+        GOOS=linux GOARCH=amd64 go build -o ./main-linux  # Gera o binário diretamente na raiz
 
-    - name: Mover binário para a raiz do repositório
+    - name: Copiar o binário para a raiz do repositório
       run: |
-        mv .github/workflows/main-linux ./main-linux  # Move o binário para a raiz do projeto
-
-    - name: Criar uma tag para o release
-      run: |
-        git tag v${{ github.run_number }}  # Cria uma tag com o número da execução
-        git push origin v${{ github.run_number }}  # Envia a tag para o repositório
-
-    - name: Criar uma release no GitHub
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ./main-linux
-        tag_name: v${{ github.run_number }}  # Usando a tag criada
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        mv .github/workflows/main-linux ./main-linux  # Caso queira mover o binário de outra pasta para a raiz
